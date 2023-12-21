@@ -26,15 +26,16 @@ db_connection_name = os.environ.get('bangkit2023-402907:asia-southeast2:foodwise
 
 def open_connection():
     unix_socket = '/cloudsql/{}'.format(db_connection_name)
+    conn = None  # Inisialisasi variabel conn di luar blok try
     try:
         if os.environ.get('GAE_ENV') == 'standard':
-            conn = pymysql.connect(host='localhost',
-                             user=db_user,
-                             password=db_password,
-                             unix_socket=unix_socket,
-                             db=db_name,
-                             cursorclass=pymysql.cursors.DictCursor)
-
+            conn = pymysql.connect(
+                user=db_user,
+                password=db_password,
+                unix_socket=unix_socket,
+                db=db_name,
+                cursorclass=pymysql.cursors.DictCursor
+            )
     except pymysql.MySQLError as e:
         return e
     return conn
@@ -56,10 +57,10 @@ def user_register():
             return jsonify({'error': 'Email, username, dan password diperlukan'}), 400
     try:
         conn = open_connection()
-        with conn.cursor() as cursor:
-            cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
+        with conn.cursor():
+            conn.execute('SELECT * FROM users WHERE username = %s', (username,))
         # Cek apakah username sudah terdaftar
-            user = cursor.fetchone()
+            user = conn.fetchone()
 
             if user:
                 return jsonify({'error': 'Username sudah terdaftar'}), 400
@@ -69,7 +70,8 @@ def user_register():
 
             # Simpan user baru ke database
             sql = 'INSERT INTO users (email, username, password) VALUES (%s, %s, %s)'
-            cursor.execute(sql, (email, username, hashed_password))
+            conn.execute(sql, (email, username, hashed_password))
+            conn.connection.commit()
 
             return jsonify({'message': 'Registrasi berhasil'}), 200
 
@@ -77,7 +79,7 @@ def user_register():
         print(str(e))
         return jsonify({'error': 'Internal Server Error'}), 500
     finally:
-        cursor.close()
+        conn.close()
 
 @app.route('/login', methods=['POST'])
 def login ():
@@ -85,9 +87,9 @@ def login ():
         username = request.json['username']
         password = request.json['password']
         conn = open_connection()
-        with conn.cursor() as cursor:
-            cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
-            user = cursor.fetchone()
+        with conn.cursor() :
+            conn.execute("SELECT * FROM users WHERE username = %s", (username,))
+            user = conn.fetchone()
 
         # Check if the user exists
             if user:
