@@ -81,17 +81,21 @@ def user_register():
     email = data.get('email')
     username = data.get('username')
     password = data.get('password')
-    if not email or not username or not password:
-            return jsonify({'error': 'Email, username, dan password diperlukan'}), 400
+    
     try:
         conn = connect_unix_socket()
         if conn is None:
             return jsonify({'error': 'Failed to establish a database connection'}), 500
+        
+        if not email or not username or not password:
+            return jsonify({'error': 'Email, username, dan password diperlukan'}), 400
 
         with conn.connect() as connection:
-            results = connection.execute('SELECT * FROM users WHERE username = %s', (username,))
-        # Cek apakah username sudah terdaftar
-            user = connection.fetchall()
+            result = connection.execute('SELECT * FROM users WHERE username = %s', (username,))
+            user = result.fetchall()
+
+            if user:
+                return jsonify({'error': 'Username sudah terdaftar'}), 
 
             if user:
                 return jsonify({'error': 'Username sudah terdaftar'}), 400
@@ -122,10 +126,10 @@ def login ():
             return jsonify({'error': 'Failed to establish a database connection'}), 500
 
         with conn.connect() as connection:
-            results = connection.execute("SELECT * FROM users WHERE username = %s", (username,))
-            if results is None :
+            result = connection.execute("SELECT * FROM users WHERE username = %s", (username,))
+            if result is None or result.rowcount == 0:
                 return jsonify({'error': 'data kosong'}), 400
-            user = connection.fetchone()
+            user = result.fetchone()
 
         # Check if the user exists
             if user:
