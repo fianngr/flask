@@ -2,7 +2,9 @@ import os
 from flask import Flask, request, jsonify
 from flask_swagger_ui import get_swaggerui_blueprint
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, create_access_token
-from flask_mysqldb import MySQL
+# from flask_mysqldb import MySQL
+# import sqlalchemy
+import pymysql
 import bcrypt
 
 app = Flask(__name__)
@@ -13,12 +15,31 @@ app = Flask(__name__)
 # app.config['SECRET_KEY'] = SECRET_KEY
 
 # MySQL configurations
-app.config['MYSQL_HOST'] = os.environ.get('MYSQL_HOST', '34.128.102.38')
-app.config['MYSQL_USER'] = os.environ.get('MYSQL_USER', 'root')
-app.config['MYSQL_PASSWORD'] = os.environ.get('MYSQL_PASSWORD', 'root')
-app.config['MYSQL_DB'] = os.environ.get('MYSQL_DB', 'foodwise')
+db_user = os.environ.get('root')
+db_password = os.environ.get('root')
+db_name = os.environ.get('foodwise')
+db_connection_name = os.environ.get('bangkit2023-402907:asia-southeast2:foodwise')
 
-mysql = MySQL(app)
+# mysql = MySQL(app)
+
+
+
+def open_connection():
+    unix_socket = '/cloudsql/{}'.format(db_connection_name)
+    try:
+        if os.environ.get('GAE_ENV') == 'standard':
+            conn = pymysql.connect(host='localhost',
+                             user=db_user,
+                             password=db_password,
+                             unix_socket=unix_socket,
+                             db=db_name,
+                             cursorclass=pymysql.cursors.DictCursor)
+
+    except pymysql.MySQLError as e:
+        return e
+    return conn
+
+
 
 @app.route("/")
 def hello_word():
@@ -34,52 +55,53 @@ def user_register():
     if not email or not username or not password:
             return jsonify({'error': 'Email, username, dan password diperlukan'}), 400
     try:
-        db = mysql.connection.cursor()
-        db.execute('SELECT * FROM users WHERE username = %s', (username,))
+        conn = open_connection()
+        with conn.cursor() as cursor:
+            cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
         # Cek apakah username sudah terdaftar
-        user = db.fetchone()
+            user = cursor.fetchone()
 
-        if user:
-            return jsonify({'error': 'Username sudah terdaftar'}), 400
+            if user:
+                return jsonify({'error': 'Username sudah terdaftar'}), 400
 
-        # Hash password
-        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+            # Hash password
+            hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
             # Simpan user baru ke database
-        sql = 'INSERT INTO users (email, username, password) VALUES (%s, %s, %s)'
-        db.execute(sql, (email, username, hashed_password))
-        mysql.connection.commit()
+            sql = 'INSERT INTO users (email, username, password) VALUES (%s, %s, %s)'
+            cursor.execute(sql, (email, username, hashed_password))
 
-        return jsonify({'message': 'Registrasi berhasil'}), 200
+            return jsonify({'message': 'Registrasi berhasil'}), 200
 
     except Exception as e:
         print(str(e))
         return jsonify({'error': 'Internal Server Error'}), 500
     finally:
-        db.close()
+        cursor.close()
 
 @app.route('/login', methods=['POST'])
 def login ():
     try:
         username = request.json['username']
         password = request.json['password']
-        db = mysql.connection.cursor()
-        db.execute("SELECT * FROM users WHERE username = %s", (username,))
-        user = db.fetchone()
+        conn = open_connection()
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
+            user = cursor.fetchone()
 
         # Check if the user exists
-        if user:
-            hashed_password = user[3] 
-            if bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
-                # print(user[3])
-                    # Jika password valid, buat token JWT
-                token = create_access_token(identity={'username': user[2]})
-                return jsonify({
-                    'message': 'Login Success',
-                    'token_jwt': token
-                }), 200
-            else:
-                return jsonify({'error': 'Username atau password salah'}), 401
+            if user:
+                hashed_password = user[3] 
+                if bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
+                    # print(user[3])
+                        # Jika password valid, buat token JWT
+                    token = create_access_token(identity={'username': user[2]})
+                    return jsonify({
+                        'message': 'Login Success',
+                        'token_jwt': token
+                    }), 200
+                else:
+                    return jsonify({'error': 'Username atau password salah'}), 401
     except Exception as e:
         print(str(e))
         return jsonify({'error': 'Internal Server Error'}), 500
