@@ -17,7 +17,6 @@ COPY . ./
 # Install any dependencies specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-RUN pip install gunicorn==21.2.0
 # Copy the current directory contents into the container at /app
 # EXPOSE 5000
 # Cleanup
