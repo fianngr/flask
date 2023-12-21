@@ -89,7 +89,9 @@ def user_register():
             return jsonify({'error': 'Failed to establish a database connection'}), 500
 
         with conn.cursor() as cursor:
-            cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
+            results = cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
+            if results is None :
+                return jsonify({'error': 'data kosong'}), 500
         # Cek apakah username sudah terdaftar
             user = cursor.fetchall()
 
@@ -122,7 +124,9 @@ def login ():
             return jsonify({'error': 'Failed to establish a database connection'}), 500
 
         with conn.cursor() as cursor:
-            cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
+            results = cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
+            if results is None :
+                return jsonify({'error': 'data kosong'}), 500
             user = cursor.fetchone()
 
         # Check if the user exists
