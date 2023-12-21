@@ -3,8 +3,8 @@ from flask import Flask, request, jsonify
 from flask_swagger_ui import get_swaggerui_blueprint
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, create_access_token
 # from flask_mysqldb import MySQL
-# import sqlalchemy
-import pymysql
+import sqlalchemy
+# import pymysql
 import bcrypt
 
 app = Flask(__name__)
@@ -15,30 +15,58 @@ app = Flask(__name__)
 # app.config['SECRET_KEY'] = SECRET_KEY
 
 # MySQL configurations
-db_user = os.environ.get('CLOUD_SQL_USERNAME','root')
-db_password = os.environ.get('CLOUD_SQL_PASSWORD','root')
-db_name = os.environ.get('CLOUD_SQL_DATABASE_NAME','foodwise')
-db_connection_name = os.environ.get('CLOUD_SQL_CONNECTION_NAME','bangkit2023-402907:asia-southeast2:foodwise')
+# db_user = os.environ.get('CLOUD_SQL_USERNAME','root')
+# db_password = os.environ.get('CLOUD_SQL_PASSWORD','root')
+# db_name = os.environ.get('CLOUD_SQL_DATABASE_NAME','foodwise')
+# db_connection_name = os.environ.get('CLOUD_SQL_CONNECTION_NAME','bangkit2023-402907:asia-southeast2:foodwise')
 
 # mysql = MySQL(app)
 
 
 
-def open_connection():
-    unix_socket = '/cloudsql/{}'.format(db_connection_name)
-    conn = None  # Inisialisasi variabel conn di luar blok try
-    try:
-        if os.environ.get('GAE_ENV') == 'standard':
-            conn = pymysql.connect(
-                user=db_user,
-                password=db_password,
-                unix_socket=unix_socket,
-                db=db_name,
-                cursorclass=pymysql.cursors.DictCursor
-            )
-    except pymysql.MySQLError as e:
-        return e
-    return conn
+# def open_connection():
+#     unix_socket = '/cloudsql/{}'.format(db_connection_name)
+#     conn = None  # Inisialisasi variabel conn di luar blok try
+#     try:
+#         if os.environ.get('GAE_ENV') == 'standard':
+#             conn = pymysql.connect(
+#                 user=db_user,
+#                 password=db_password,
+#                 unix_socket=unix_socket,
+#                 db=db_name,
+#                 cursorclass=pymysql.cursors.DictCursor
+#             )
+#     except pymysql.MySQLError as e:
+#         return e
+#     return conn
+
+
+def connect_unix_socket() -> sqlalchemy.engine.base.Engine:
+    """Initializes a Unix socket connection pool for a Cloud SQL instance of MySQL."""
+    # Note: Saving credentials in environment variables is convenient, but not
+    # secure - consider a more secure solution such as
+    # Cloud Secret Manager (https://cloud.google.com/secret-manager) to help
+    # keep secrets safe.
+    db_user = os.environ["CLOUD_SQL_USERNAME"]  # e.g. 'my-database-user'
+    db_pass = os.environ["CLOUD_SQL_PASSWORD"]  # e.g. 'my-database-password'
+    db_name = os.environ["CLOUD_SQL_DATABASE_NAME"]  # e.g. 'my-database'
+    unix_socket_path = os.environ[
+        "INSTANCE_UNIX_SOCKET"
+    ]  # e.g. '/cloudsql/project:region:instance'
+
+    pool = sqlalchemy.create_engine(
+        # Equivalent URL:
+        # mysql+pymysql://<db_user>:<db_pass>@/<db_name>?unix_socket=<socket_path>/<cloud_sql_instance_name>
+        sqlalchemy.engine.url.URL.create(
+            drivername="mysql+pymysql",
+            username=db_user,
+            password=db_pass,
+            database=db_name,
+            query={"unix_socket": unix_socket_path},
+        ),
+        # ...
+    )
+    return pool
 
 
 
@@ -56,7 +84,7 @@ def user_register():
     if not email or not username or not password:
             return jsonify({'error': 'Email, username, dan password diperlukan'}), 400
     try:
-        conn = open_connection()
+        conn = connect_unix_socket()
         if conn is None:
             return jsonify({'error': 'Failed to establish a database connection'}), 500
 
@@ -89,7 +117,7 @@ def login ():
     try:
         username = request.json['username']
         password = request.json['password']
-        conn = open_connection()
+        conn = connect_unix_socket()
         if conn is None:
             return jsonify({'error': 'Failed to establish a database connection'}), 500
 
