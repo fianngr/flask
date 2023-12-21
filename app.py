@@ -88,12 +88,10 @@ def user_register():
         if conn is None:
             return jsonify({'error': 'Failed to establish a database connection'}), 500
 
-        with conn.cursor() as cursor:
-            results = cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
-            if results is None :
-                return jsonify({'error': 'data kosong'}), 500
+        with conn.connect() as connection:
+            results = connection.execute('SELECT * FROM users WHERE username = %s', (username,))
         # Cek apakah username sudah terdaftar
-            user = cursor.fetchall()
+            user = connection.fetchall()
 
             if user:
                 return jsonify({'error': 'Username sudah terdaftar'}), 400
@@ -103,7 +101,7 @@ def user_register():
 
             # Simpan user baru ke database
             sql = 'INSERT INTO users (email, username, password) VALUES (%s, %s, %s)'
-            cursor.execute(sql, (email, username, hashed_password))
+            connection.execute(sql, (email, username, hashed_password))
            
 
             return jsonify({'message': 'Registrasi berhasil'}), 200
@@ -123,11 +121,11 @@ def login ():
         if conn is None:
             return jsonify({'error': 'Failed to establish a database connection'}), 500
 
-        with conn.cursor() as cursor:
-            results = cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
+        with conn.connect() as connection:
+            results = connection.execute("SELECT * FROM users WHERE username = %s", (username,))
             if results is None :
-                return jsonify({'error': 'data kosong'}), 500
-            user = cursor.fetchone()
+                return jsonify({'error': 'data kosong'}), 400
+            user = connection.fetchone()
 
         # Check if the user exists
             if user:
