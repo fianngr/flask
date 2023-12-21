@@ -57,10 +57,13 @@ def user_register():
             return jsonify({'error': 'Email, username, dan password diperlukan'}), 400
     try:
         conn = open_connection()
+        if conn is None:
+            return jsonify({'error': 'Failed to establish a database connection'}), 500
+
         with conn.cursor() as cursor:
             cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
         # Cek apakah username sudah terdaftar
-            user = cursor.fetchone()
+            user = cursor.fetchall()
 
             if user:
                 return jsonify({'error': 'Username sudah terdaftar'}), 400
