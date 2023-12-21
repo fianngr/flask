@@ -1,0 +1,226 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "Documentation API FoodWise",
+    "description":"Foodwise API is designed to provide access to the Foodwise application functionalities. It allows users to register, log in, and predict food ingredients based on images."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5000"
+    }
+  ],
+  "tags": [
+    {
+      "name": "predict",
+      "description": "You can Detect Image by base64 to get rekomendation recep",
+      "externalDocs": {
+        "description": "Find out more",
+        "url": "http://swagger.io"
+      }
+    },
+    {
+      "name": "user",
+      "description": "Operations about user"
+    }
+  ],
+  "paths": {
+    "/register": {
+      "post": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Create user",
+        "description": "The user create acoount",
+        "operationId": "createUser",
+        "requestBody": {
+          "description": "Created user object",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/register"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/register"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Registrasi berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/register"
+                }
+              }
+            }
+          },
+          "400":{
+            "description": "Username sudah terdaftar or Email, username, dan password diperlukan",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/register"
+                }
+              }
+            }
+          },
+          "500":{
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/predict": {
+      "post": {
+        "tags": [
+          "predict"
+        ],
+        "summary": "Image Detect",
+        "description": "User send the image by base64",
+        "operationId": "Detect Image",
+        "security": [{"jwt": {
+          "type": "http",
+          "scheme": "bearer",
+          "bearerFormat": "JWT",
+          "x-bearerInfoFunc": "app.decode_token"
+      }}],
+        "requestBody": {
+          "description": "Predict Image by base64",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/predict"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/predict"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid username/password supplied"
+          }
+        }
+      }
+    },
+    "/login": {
+      "post": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Logs user into the system",
+        "description": "User do Login",
+        "operationId": "loginUser",
+        "requestBody": {
+          "description": "Login User",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/login"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/login"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid username/password supplied"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "register": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "john@email.com"
+          },
+          "username": {
+            "type": "string",
+            "example": "theUser"
+          },
+          "password": {
+            "type": "string",
+            "example": "12345"
+          }
+        },
+        "xml": {
+          "name": "user"
+        }
+      },
+      "login": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "example": "theUser"
+          },
+          "password": {
+            "type": "string",
+            "example": "12345"
+          }
+        },
+        "xml": {
+          "name": "user"
+        }
+      },
+      "predict": {
+        "type": "object",
+        "properties": {
+          "base64": {
+            "type": "varchar",
+            "example": "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"
+          }
+        },
+        "xml": {
+          "name": "user"
+        }
+      }
+    },
+    "securitySchemes": {
+      "jwt": {
+          "type": "http",
+          "scheme": "bearer",
+          "bearerFormat": "JWT",
+          "x-bearerInfoFunc": "app.decode_token"
+      }
+    }
+  }
+
+}
