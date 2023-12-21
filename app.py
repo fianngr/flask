@@ -84,6 +84,7 @@ def user_register():
     
     try:
         conn = connect_unix_socket()
+        print(conn)
         if conn is None:
             return jsonify({'error': 'Failed to establish a database connection'}), 500
         
@@ -122,6 +123,7 @@ def login ():
         username = request.json['username']
         password = request.json['password']
         conn = connect_unix_socket()
+        print(conn)
         if conn is None:
             return jsonify({'error': 'Failed to establish a database connection'}), 500
 
