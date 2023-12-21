@@ -13,13 +13,12 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'rahasia')
 app.config['SECRET_KEY'] = SECRET_KEY
 
 # MySQL configurations
-app.config['MYSQL_HOST'] = '34.128.102.38'
-app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = 'root'
-app.config['MYSQL_DB'] = 'foodwise'
+app.config['MYSQL_HOST'] = os.environ.get('MYSQL_HOST', '34.128.102.38')
+app.config['MYSQL_USER'] = os.environ.get('MYSQL_USER', 'root')
+app.config['MYSQL_PASSWORD'] = os.environ.get('MYSQL_PASSWORD', 'root')
+app.config['MYSQL_DB'] = os.environ.get('MYSQL_DB', 'foodwise')
+
 mysql = MySQL(app)
-
-
 
 @app.route("/")
 def hello_word():
