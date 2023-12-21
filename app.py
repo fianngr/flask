@@ -4,7 +4,7 @@ from flask_swagger_ui import get_swaggerui_blueprint
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, create_access_token
 # from flask_mysqldb import MySQL
 import sqlalchemy
-# import pymysql
+import pymysql
 import bcrypt
 
 app = Flask(__name__)
