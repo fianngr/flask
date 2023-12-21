@@ -15,10 +15,10 @@ app = Flask(__name__)
 # app.config['SECRET_KEY'] = SECRET_KEY
 
 # MySQL configurations
-db_user = os.environ.get('root')
-db_password = os.environ.get('root')
-db_name = os.environ.get('foodwise')
-db_connection_name = os.environ.get('bangkit2023-402907:asia-southeast2:foodwise')
+db_user = os.environ.get('CLOUD_SQL_USERNAME','root')
+db_password = os.environ.get('CLOUD_SQL_PASSWORD','root')
+db_name = os.environ.get('CLOUD_SQL_DATABASE_NAME','foodwise')
+db_connection_name = os.environ.get('CLOUD_SQL_CONNECTION_NAME','bangkit2023-402907:asia-southeast2:foodwise')
 
 # mysql = MySQL(app)
 
