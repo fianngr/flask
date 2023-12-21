@@ -57,10 +57,10 @@ def user_register():
             return jsonify({'error': 'Email, username, dan password diperlukan'}), 400
     try:
         conn = open_connection()
-        with conn.cursor():
-            conn.execute('SELECT * FROM users WHERE username = %s', (username,))
+        with conn.cursor() as cursor:
+            cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
         # Cek apakah username sudah terdaftar
-            user = conn.fetchone()
+            user = cursor.fetchone()
 
             if user:
                 return jsonify({'error': 'Username sudah terdaftar'}), 400
@@ -70,8 +70,8 @@ def user_register():
 
             # Simpan user baru ke database
             sql = 'INSERT INTO users (email, username, password) VALUES (%s, %s, %s)'
-            conn.execute(sql, (email, username, hashed_password))
-            conn.connection.commit()
+            cursor.execute(sql, (email, username, hashed_password))
+           
 
             return jsonify({'message': 'Registrasi berhasil'}), 200
 
@@ -87,9 +87,9 @@ def login ():
         username = request.json['username']
         password = request.json['password']
         conn = open_connection()
-        with conn.cursor() :
-            conn.execute("SELECT * FROM users WHERE username = %s", (username,))
-            user = conn.fetchone()
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
+            user = cursor.fetchone()
 
         # Check if the user exists
             if user:
