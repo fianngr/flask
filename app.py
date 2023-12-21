@@ -90,6 +90,9 @@ def login ():
         username = request.json['username']
         password = request.json['password']
         conn = open_connection()
+        if conn is None:
+            return jsonify({'error': 'Failed to establish a database connection'}), 500
+
         with conn.cursor() as cursor:
             cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
             user = cursor.fetchone()
