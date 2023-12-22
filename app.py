@@ -85,7 +85,7 @@ def login ():
         if user:
             print(user)
             hashed_password = user[3]
-            # print(user[3])
+            print(user[3])
             if bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
                 # print(user[3])
                     # Jika password valid, buat token JWT
