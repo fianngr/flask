@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "http://localhost:5000"
+      "url": "https://helloworld-cnznppwbaa-et.a.run.app/"
     }
   ],
   "tags": [
