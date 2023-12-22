@@ -24,6 +24,10 @@ app.config["MYSQL_UNIX_SOCKET"] = '/cloudsql/sapient-spark-404310:asia-southeast
 # Extra configs, optional:
 app.config["MYSQL_CURSORCLASS"] = "DictCursor"
 
+# app.config['MYSQL_HOST'] = 'localhost'
+# app.config['MYSQL_USER'] = 'root'
+# app.config['MYSQL_PASSWORD'] = ''
+# app.config['MYSQL_DB'] = 'foodwise'
 
 mysql = MySQL(app)
 
@@ -75,17 +79,17 @@ def login ():
         password = request.json['password']
         db = mysql.connection.cursor()
         db.execute("SELECT * FROM users WHERE username = %s", (username,))
-        user = db.fetchall()
-        print (user)
+        user = db.fetchone()
+        # print (user)
 
         # Check if the user exists
         if user:
-            hashed_password = user[0][3]
+            hashed_password = user[3]
             # print(user[3])
             if bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
                 # print(user[3])
                     # Jika password valid, buat token JWT
-                token = create_access_token(identity={'username': user[0][2]})
+                token = create_access_token(identity={'username': user[2]})
                 return jsonify({
                     'message': 'Login Success',
                     'token_jwt': token
