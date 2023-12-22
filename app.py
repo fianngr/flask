@@ -14,70 +14,19 @@ jwt = JWTManager(app)
 SECRET_KEY = os.environ.get('SECRET_KEY', 'rahasia')
 app.config['SECRET_KEY'] = SECRET_KEY
 
-# MySQL configurations
-# db_user = os.environ.get('CLOUD_SQL_USERNAME','root')
-# db_password = os.environ.get('CLOUD_SQL_PASSWORD','root')
-# db_name = os.environ.get('CLOUD_SQL_DATABASE_NAME','foodwise')
-# db_connection_name = os.environ.get('CLOUD_SQL_CONNECTION_NAME','bangkit2023-402907:asia-southeast2:foodwise')
 
-# mysql = MySQL(app)
-# app.config['MYSQL_HOST'] = 'bangkit2023-402907:asia-southeast2:foodwise'
-# app.config['MYSQL_USER'] = 'root'
-# app.config['MYSQL_PASSWORD'] = 'root'
-# app.config['MYSQL_DB'] = 'foodwise'
+
 
 app.config["MYSQL_USER"] = 'root'
 app.config["MYSQL_PASSWORD"] = 'root'
 app.config["MYSQL_DB"] = 'foodwise'
-app.config["MYSQL_UNIX_SOCKET"] = '/cloudsql/bangkit2023-402907:asia-southeast2:foodwise'
+app.config["MYSQL_UNIX_SOCKET"] = '/cloudsql/sapient-spark-404310:asia-southeast2:foodwise'
 # Extra configs, optional:
 app.config["MYSQL_CURSORCLASS"] = "DictCursor"
 
 
 mysql = MySQL(app)
-# def open_connection():
-#     unix_socket = '/cloudsql/{}'.format(db_connection_name)
-#     conn = None  # Inisialisasi variabel conn di luar blok try
-#     try:
-#         if os.environ.get('GAE_ENV') == 'standard':
-#             conn = pymysql.connect(
-#                 user=db_user,
-#                 password=db_password,
-#                 unix_socket=unix_socket,
-#                 db=db_name,
-#                 cursorclass=pymysql.cursors.DictCursor
-#             )
-#     except pymysql.MySQLError as e:
-#         return e
-#     return conn
 
-
-# def connect_unix_socket() -> sqlalchemy.engine.base.Engine:
-#     """Initializes a Unix socket connection pool for a Cloud SQL instance of MySQL."""
-#     # Note: Saving credentials in environment variables is convenient, but not
-#     # secure - consider a more secure solution such as
-#     # Cloud Secret Manager (https://cloud.google.com/secret-manager) to help
-#     # keep secrets safe.
-#     db_user = os.environ["CLOUD_SQL_USERNAME"]  # e.g. 'my-database-user'
-#     db_pass = os.environ["CLOUD_SQL_PASSWORD"]  # e.g. 'my-database-password'
-#     db_name = os.environ["CLOUD_SQL_DATABASE_NAME"]  # e.g. 'my-database'
-#     unix_socket_path = os.environ[
-#         "INSTANCE_UNIX_SOCKET"
-#     ]  # e.g. '/cloudsql/project:region:instance'
-
-#     pool = sqlalchemy.create_engine(
-#         # Equivalent URL:
-#         # mysql+pymysql://<db_user>:<db_pass>@/<db_name>?unix_socket=<socket_path>/<cloud_sql_instance_name>
-#         sqlalchemy.engine.url.URL.create(
-#             drivername="mysql+pymysql",
-#             username=db_user,
-#             password=db_pass,
-#             database=db_name,
-#             query={"unix_socket": unix_socket_path},
-#         ),
-#         # ...
-#     )
-#     return pool
 
 
 
@@ -127,17 +76,18 @@ def login ():
         db = mysql.connection.cursor()
         db.execute("SELECT * FROM users WHERE username = %s", (username,))
         user = db.fetchall()
+        print (user)
 
         # Check if the user exists
         if user:
             print(user)
-            print(user[0]['username'])
-            hashed_password = user[0]['password']
+            print(user[0][3])
+            hashed_password = user[0][3]
             # print(user[3])
             if bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
                 # print(user[3])
                     # Jika password valid, buat token JWT
-                token = create_access_token(identity={'username': user[0]['username']})
+                token = create_access_token(identity={'username': user[0][2]})
                 return jsonify({
                     'message': 'Login Success',
                     'token_jwt': token
