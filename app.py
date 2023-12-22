@@ -126,16 +126,18 @@ def login ():
         password = request.json['password']
         db = mysql.connection.cursor()
         db.execute("SELECT * FROM users WHERE username = %s", (username,))
-        user = db.fetchone()
+        user = db.fetchall()
 
         # Check if the user exists
         if user:
-            hashed_password = user['password'] 
-            print(user[3])
+            print(user)
+            print(user[2])
+            hashed_password = user[3]
+            # print(user[3])
             if bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
                 # print(user[3])
                     # Jika password valid, buat token JWT
-                token = create_access_token(identity={'username': user['username']})
+                token = create_access_token(identity={'username': user[2]})
                 return jsonify({
                     'message': 'Login Success',
                     'token_jwt': token
