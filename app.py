@@ -127,9 +127,11 @@ def login ():
         db = mysql.connection.cursor()
         db.execute("SELECT * FROM users WHERE username = %s", (username,))
         user = db.fetchone()
+        
 
         # Check if the user exists
         if user:
+            print(user)
             hashed_password = user[3] 
             if bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
                 # print(user[3])
