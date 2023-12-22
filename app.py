@@ -80,8 +80,6 @@ def login ():
 
         # Check if the user exists
         if user:
-            print(user)
-            print(user[0][3])
             hashed_password = user[0][3]
             # print(user[3])
             if bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
