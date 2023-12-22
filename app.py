@@ -130,12 +130,12 @@ def login ():
 
         # Check if the user exists
         if user:
-            hashed_password = user[3] 
+            hashed_password = user['password'] 
             print(user[3])
             if bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
                 # print(user[3])
                     # Jika password valid, buat token JWT
-                token = create_access_token(identity={'username': user[2]})
+                token = create_access_token(identity={'username': user['username']})
                 return jsonify({
                     'message': 'Login Success',
                     'token_jwt': token
